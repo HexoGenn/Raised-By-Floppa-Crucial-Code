@@ -1,31 +1,28 @@
-return {
-	__newindex = function(_,plr,dataToSave)
-		if dataToSave and type(dataToSave) == "table" then
-			rawset(playerData,plr.Name,dataToSave)
+function(r,cd,func)
+	local plrs = {}
+	
+	if r:IsA("RemoteEvent") then
+		r.OnServerEvent:Connect(function(plr,a,b,c,d,e,f,g) --pain, i forgot how to use "..." --... argument with a table that contains all other arguments i think idk
+			if p then return end
+			table.insert(plrs,plr.UserId)
+			local _,err = pcall(func,plr,a,b,c,d,e,f,g)
+			if err then warn(err) end
+			task.wait(cd)
+			table.remove(plrs,table.find(plrs,plr.UserId))
+		end)
+	elseif r:IsA("RemoteFunction") then
+		r.OnServerInvoke = function(plr,a,b,c,d,e,f,g) --pain, i forgot how to use "..." --... argument with a table that contains all other arguments i think idk
+			if table.find(plrs,plr.UserId) then return end
+			table.insert(plrs,plr.UserId)
+			local result = nil
+			local _,err = pcall(function()
+				result = func(plr,a,b,c,d,e,f,g)
+			end)
+			if err then warn(err) end
+			task.delay(cd,function()
+				table.remove(plrs,table.find(plrs,plr.UserId))
+			end)
+			return result
 		end
-		
-	end;
-	__call = function(_,plr)
-		
-		local data = rawget(playerData,plr.Name)
-		
-		if not data then
-			--warn("player has no data in memory, getting from datastore...")
-			local suc, err
-
-			while not suc do
-				suc, err = pcall(function()
-					data = DataStore:GetAsync("Products"..(disguise or plr.UserId)) or {}
-				end)
-				if not suc then warn(err) task.wait(3) end
-			end
-
-			playerData[plr] = data
-
-		else
-			--warn("player already has data in memory")
-		end
-		
-		return data
-	end;
-}
+	end
+end
