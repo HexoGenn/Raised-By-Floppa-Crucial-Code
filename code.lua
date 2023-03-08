@@ -1,21 +1,31 @@
-local module = {}
-local power:UDim2
-local e
-
-module.SetCameraShake = function(enabled,pow:UDim2)
-	power = pow
-	if enabled then
-		if e then
-			e:Disconnect()
+return {
+	__newindex = function(_,plr,dataToSave)
+		if dataToSave and type(dataToSave) == "table" then
+			rawset(playerData,plr.Name,dataToSave)
 		end
-		e = game:GetService("RunService").RenderStepped:Connect(function()
-			workspace.CurrentCamera.CFrame *= CFrame.Angles(math.sin(tick()*power.X.Offset)*power.X.Scale, math.sin(tick()*power.Y.Offset)*power.Y.Scale, 0)
-		end)
-	else
-		if e then
-			e:Disconnect()
-		end
-	end
-end
+		
+	end;
+	__call = function(_,plr)
+		
+		local data = rawget(playerData,plr.Name)
+		
+		if not data then
+			--warn("player has no data in memory, getting from datastore...")
+			local suc, err
 
-return module
+			while not suc do
+				suc, err = pcall(function()
+					data = DataStore:GetAsync("Products"..(disguise or plr.UserId)) or {}
+				end)
+				if not suc then warn(err) task.wait(3) end
+			end
+
+			playerData[plr] = data
+
+		else
+			--warn("player already has data in memory")
+		end
+		
+		return data
+	end;
+}
