@@ -1,0 +1,35 @@
+task.wait(10)
+
+local HttpService = game:GetService("HttpService")
+local UniverseId = game.GameId
+
+local shortener = require(game:GetService("ReplicatedStorage"):WaitForChild("Modules"):WaitForChild("ShortenNumber"))
+
+while true do
+	local suc, err = pcall(function()
+		local response = HttpService:RequestAsync({
+			Url = "https://rprxy.deta.dev/games/v1/games/votes?universeIds="..UniverseId,
+			Method = "GET"
+		})
+
+		if response.Success then
+			local votes = HttpService:JSONDecode(response.Body)
+			local amt = votes.data[1].upVotes
+			local goal = (math.round((amt + 5000) / 1000) * 1000) * 1 -- haha nermis ur useless whydid u add x1
+			script.Parent.Parent.TextLabel.Text = "NEXT UPDATE: "..tostring(shortener.Shorten(goal)).." LIKES"
+			local ratio = amt/goal
+			
+			if ratio <= 1 then
+				script.Parent.Size = UDim2.new(ratio,0,0.2,0)
+			else
+				script.Parent.Size = UDim2.new(1,0,0.2,0)
+			end
+			
+			script.Parent.Text = shortener.Shorten(amt)
+		else
+			script.Parent.Text = "A LOTTA LIKES!!1!111!1"
+			script.Parent.Size = UDim2.new(1,0,0.2,0)
+		end
+		task.wait(60)
+	end)
+end
