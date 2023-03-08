@@ -1,3 +1,19 @@
+--[[local likegetter = require(script:WaitForChild("LikeGetter"))
+likegetter:Init("AKfycbzSQors3osHh_Abi4nNkUD-326vxQg076A8iE7vTbl1LNOCo5_k")
+
+local LikeGoal = 5000
+
+while true do
+	local likes = likegetter:GetLikes()
+	warn(likes)
+	
+	local ratio = likes/LikeGoal
+	script.Parent.Size = UDim2.new(ratio,0,0.2,0)
+	script.Parent.Text = likes
+	
+	task.wait(60)
+end]]
+
 task.wait(10)
 
 local HttpService = game:GetService("HttpService")
@@ -15,6 +31,7 @@ while true do
 		if response.Success then
 			local votes = HttpService:JSONDecode(response.Body)
 			local amt = votes.data[1].upVotes
+			amt = 10000
 			local goal = (math.round((amt + 5000) / 1000) * 1000) * 1 -- haha nermis ur useless whydid u add x1
 			script.Parent.Parent.TextLabel.Text = "NEXT UPDATE: "..tostring(shortener.Shorten(goal)).." LIKES"
 			local ratio = amt/goal
