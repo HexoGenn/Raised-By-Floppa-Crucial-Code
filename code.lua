@@ -1,28 +1,51 @@
-function(r,cd,func)
-	local plrs = {}
-	
-	if r:IsA("RemoteEvent") then
-		r.OnServerEvent:Connect(function(plr,a,b,c,d,e,f,g) --pain, i forgot how to use "..." --... argument with a table that contains all other arguments i think idk
-			if p then return end
-			table.insert(plrs,plr.UserId)
-			local _,err = pcall(func,plr,a,b,c,d,e,f,g)
-			if err then warn(err) end
-			task.wait(cd)
-			table.remove(plrs,table.find(plrs,plr.UserId))
-		end)
-	elseif r:IsA("RemoteFunction") then
-		r.OnServerInvoke = function(plr,a,b,c,d,e,f,g) --pain, i forgot how to use "..." --... argument with a table that contains all other arguments i think idk
-			if table.find(plrs,plr.UserId) then return end
-			table.insert(plrs,plr.UserId)
-			local result = nil
-			local _,err = pcall(function()
-				result = func(plr,a,b,c,d,e,f,g)
-			end)
-			if err then warn(err) end
-			task.delay(cd,function()
-				table.remove(plrs,table.find(plrs,plr.UserId))
-			end)
-			return result
-		end
+-- Script thanks to the roblox wiki :D
+
+print("disabling collisions")
+
+local PhysicsService = game:GetService("PhysicsService")
+local Players = game:GetService("Players")
+
+local playerCollisionGroupName = "Players"
+PhysicsService:RegisterCollisionGroup(playerCollisionGroupName)
+PhysicsService:CollisionGroupSetCollidable(playerCollisionGroupName, playerCollisionGroupName, false)
+
+local previousCollisionGroups = {}
+
+local function setCollisionGroup(object)
+	if object:IsA("BasePart") then
+		previousCollisionGroups[object] = object.CollisionGroupId
+		object.CollisionGroupId = playerCollisionGroupName
 	end
 end
+
+local function setCollisionGroupRecursive(object)
+	setCollisionGroup(object)
+
+	for _, child in ipairs(object:GetChildren()) do
+		setCollisionGroupRecursive(child)
+	end
+end
+
+local function resetCollisionGroup(object)
+	local previousCollisionGroupId = previousCollisionGroups[object]
+	if not previousCollisionGroupId then return end 
+
+	local previousCollisionGroupName = PhysicsService:GetCollisionGroupName(previousCollisionGroupId)
+	if not previousCollisionGroupName then return end
+
+	PhysicsService:SetPartCollisionGroup(object, previousCollisionGroupName)
+	previousCollisionGroups[object] = nil
+end
+
+local function onCharacterAdded(character)
+	setCollisionGroupRecursive(character)
+
+	character.DescendantAdded:Connect(setCollisionGroup)
+	character.DescendantRemoving:Connect(resetCollisionGroup)
+end
+
+local function onPlayerAdded(player)
+	player.CharacterAdded:Connect(onCharacterAdded)
+end
+
+Players.PlayerAdded:Connect(onPlayerAdded)
