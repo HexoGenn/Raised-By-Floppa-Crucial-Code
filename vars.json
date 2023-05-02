@@ -1,5 +1,9 @@
 {
   "difficulty": 2.75,
   "defaultcash": 30,
-  "defaultfoodprice": 40
+  "defaultfoodprice": 40,
+  "cashAmountMultiplier": 1,
+  "farmGrowthTime": 38,
+  "farmStartPrice": 1000000,
+  "farmMulti": 6
 }
