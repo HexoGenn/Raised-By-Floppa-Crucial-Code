@@ -1,3 +1,5 @@
 {
   "difficulty": 2.75,
+  "defaultcash": 30,
+  "defaultfoodprice": 40
 }
